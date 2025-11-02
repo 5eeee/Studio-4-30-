@@ -1,0 +1,1783 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><4:30/> — Студия разработки Telegram ботов & Mini Apps</title>
+  <meta name="description" content="Студия разработки Telegram-ботов и Mini Apps. Боты, интеграции, Mini Apps, парсинг данных.">
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* === ОСНОВНЫЕ СТИЛИ === */
+    :root{
+      --bg-black:#000;
+      --bg-white:#fff;
+      --bg-gray:#111;
+      --bg-light-gray:#222;
+      --txt-on-black:#fff;
+      --txt-on-white:#000;
+      --muted:#888;
+      --accent:#fff;
+      --accent-glow:rgba(255,255,255,0.3);
+      --radius:0;
+      --gap:1.25rem;
+      --ff-heading:'Silkscreen', 'Pixelify Sans', monospace;
+      --ff-body:'Pixelify Sans', monospace;
+      --pixel-size:2px;
+    }
+    
+    /* НОРМАЛЬНАЯ ЧЕРНО-БЕЛАЯ ТЕМА */
+    .bw-theme {
+      --bg-black: #ffffff;
+      --bg-white: #000000;
+      --bg-gray: #f5f5f5;
+      --bg-light-gray: #e8e8e8;
+      --txt-on-black: #000000;
+      --txt-on-white: #ffffff;
+      --muted: #666666;
+      --accent: #000000;
+      --accent-glow: rgba(0,0,0,0.3);
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--ff-body);
+      -webkit-font-smoothing:none;
+      -moz-osx-font-smoothing:grayscale;
+      color:var(--txt-on-white);
+      background:var(--bg-black);
+      scroll-behavior:smooth;
+      line-height:1.4;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      transition: all 0.3s ease;
+    }
+    
+    a{color:inherit;text-decoration:none}
+
+    /* === ПРЕЛОАДЕР === */
+    #preloader{
+      position:fixed;
+      inset:0;
+      background:#000;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      color:var(--accent);
+      font-family:var(--ff-heading);
+      transition:opacity 0.8s ease;
+    }
+    
+    .bw-theme #preloader {
+      background: #ffffff;
+    }
+    
+    .preloader-content {
+      text-align: center;
+    }
+    
+    .preloader-title {
+      font-size: clamp(24px, 6vw, 48px);
+      margin-bottom: 30px;
+      color: var(--accent);
+      font-family: var(--ff-heading);
+    }
+    
+    .loading-dots {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 0;
+      opacity: 0;
+      animation: dotAppear 1.5s infinite;
+    }
+    
+    .dot:nth-child(1) { animation-delay: 0s; }
+    .dot:nth-child(2) { animation-delay: 0.3s; }
+    .dot:nth-child(3) { animation-delay: 0.6s; }
+    
+    @keyframes dotAppear {
+      0%, 100% { opacity: 0; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+
+    /* === HEADER === */
+    header{
+      position:fixed;
+      left:0;
+      right:0;
+      top:0;
+      z-index:60;
+      padding:15px 25px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:rgba(0,0,0,0.95);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--bg-light-gray);
+      animation: headerSlideDown 0.8s ease;
+    }
+    
+    .bw-theme header {
+      background: rgba(255,255,255,0.95);
+      border-bottom: 1px solid var(--bg-light-gray);
+    }
+    
+    @keyframes headerSlideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .logo{
+      font-weight:400;
+      font-family:var(--ff-heading);
+      font-size:18px;
+      color:var(--accent);
+      letter-spacing:1px;
+      position: relative;
+    }
+    
+    .logo::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    
+    .logo:hover::after {
+      width: 100%;
+    }
+    
+    nav{display:flex;gap:12px; align-items: center;}
+    
+    /* КНОПКИ НАВИГАЦИИ */
+    .nav-btn{
+      color:var(--accent) !important;
+      background:transparent !important;
+      padding:8px 16px !important;
+      font-weight:400;
+      font-size:14px;
+      font-family:var(--ff-heading);
+      position:relative;
+      transition:all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      border:1px solid var(--accent) !important;
+      text-decoration: none !important;
+      display: block;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--accent);
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: -1;
+      transform: skewX(-15deg);
+    }
+    
+    .nav-btn:hover {
+      color: var(--bg-black) !important;
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 20px var(--accent-glow);
+      border:1px solid var(--accent) !important;
+    }
+    
+    .nav-btn:hover::before {
+      left: 0;
+      transform: skewX(0deg);
+    }
+
+    /* Кнопка темы */
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 16px;
+      font-family: var(--ff-heading);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      margin-left: 10px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    .theme-toggle::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--accent);
+      transition: left 0.4s ease;
+      z-index: -1;
+    }
+    
+    .theme-toggle:hover {
+      color: var(--bg-black);
+    }
+    
+    .theme-toggle:hover::before {
+      left: 0;
+    }
+
+    main{padding-top:70px}
+    section{padding:60px 20px; position:relative;}
+
+    /* === HERO SECTION === */
+    .hero{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      background:var(--bg-black);
+      color:var(--txt-on-black);
+      position:relative;
+      overflow:hidden;
+    }
+    
+    /* Matrix Rain Effect */
+    #matrixCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.3;
+    }
+
+    .bw-theme #matrixCanvas {
+      opacity: 0.2;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255,255,255,0.07) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bw-theme .hero::before {
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(0,0,0,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0,0,0,0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0,0,0,0.07) 0%, transparent 50%);
+    }
+
+    .hero .wrap{
+      max-width:900px;
+      position:relative;
+      z-index:2;
+      animation: heroFadeIn 1.2s ease;
+    }
+    
+    @keyframes heroFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    h1{
+      font-family:var(--ff-heading);
+      font-size:clamp(28px,5vw,52px);
+      margin:0 0 25px;
+      color:var(--accent);
+      font-weight:400;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      line-height:1.2;
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    p.lead{
+      margin:0 0 30px;
+      color:var(--muted);
+      font-size:18px;
+      font-family:var(--ff-body);
+      line-height:1.5;
+    }
+    
+    .cta{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:14px 24px;
+      background:transparent;
+      color:var(--accent);
+      font-weight:400;
+      font-family:var(--ff-heading);
+      font-size:16px;
+      border:1px solid var(--accent);
+      position:relative;
+      overflow:hidden;
+      transition:all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: 1;
+    }
+    
+    .cta::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--accent);
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: -1;
+      transform: skewX(-15deg);
+    }
+    
+    .cta:hover {
+      background:var(--accent);
+      color:var(--bg-black);
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 25px var(--accent-glow);
+    }
+    
+    .cta:hover::before {
+      left: 0;
+      transform: skewX(0deg);
+    }
+
+    /* === ЭФФЕКТ СТЕКЛА - УПРОЩЕННЫЙ === */
+    .glass-section {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .glass-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1;
+    }
+    
+    .bw-theme .glass-section::before {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    
+    .glass-section > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* === SERVICES SECTION === */
+    .services{
+      background:var(--bg-gray);
+      color:var(--txt-on-black);
+      position: relative;
+    }
+    
+    .services-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+      max-width:1200px;
+      margin:0 auto;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .service-columns {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 40px;
+    }
+    
+    .svc{
+      background:var(--bg-light-gray);
+      padding:25px;
+      border:1px solid var(--muted);
+      display:flex;
+      flex-direction:column;
+      transition:all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position:relative;
+      cursor: pointer;
+      min-height: 280px;
+    }
+    
+    .bw-theme .svc {
+      background: var(--bg-light-gray);
+      border: 1px solid var(--muted);
+    }
+    
+    .svc.featured {
+      border-color: var(--accent);
+      transform: scale(1.02);
+      animation: pulseGlow 2s infinite;
+    }
+    
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 10px var(--accent-glow); }
+      50% { box-shadow: 0 0 20px var(--accent-glow); }
+    }
+    
+    .svc:hover {
+      border-color: var(--accent);
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 15px 40px var(--accent-glow);
+    }
+    
+    .service-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+    
+    .service-price {
+      font-family: var(--ff-heading);
+      color: var(--accent);
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    
+    .service-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    
+    .tech-tag {
+      background: var(--bg-black);
+      color: var(--txt-on-black);
+      padding: 3px 8px;
+      font-size: 12px;
+      border: 1px solid var(--muted);
+      font-family: var(--ff-heading);
+      transition: all 0.3s ease;
+    }
+    
+    .bw-theme .tech-tag {
+      background: var(--bg-white);
+      color: var(--txt-on-white);
+    }
+    
+    .svc:hover .tech-tag {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
+    .service-features {
+      list-style: none;
+      margin: 15px 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+    }
+    
+    .svc.active .service-features {
+      max-height: 500px;
+    }
+    
+    .service-features li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    
+    .service-features li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    
+    .service-time {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: auto;
+      border-top: 1px solid var(--bg-light-gray);
+      padding-top: 10px;
+    }
+    
+    .service-toggle {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 18px;
+      cursor: pointer;
+      display: none;
+      transition: transform 0.3s ease;
+    }
+    
+    .svc.active .service-toggle {
+      transform: rotate(45deg);
+    }
+
+    /* ИНДИВИДУАЛЬНЫЙ ПРОЕКТ - ИСПРАВЛЕННЫЙ */
+    .individual-project {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      text-align: left;
+      background: var(--bg-light-gray) !important;
+      border: 2px solid var(--accent) !important;
+      padding: 30px !important;
+      min-height: auto !important;
+      align-items: center;
+    }
+    
+    .bw-theme .individual-project {
+      background: var(--bg-light-gray) !important;
+      border: 2px solid var(--accent) !important;
+    }
+    
+    .individual-project-content {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .individual-project .service-header {
+      justify-content: flex-start;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .individual-project .service-tech {
+      justify-content: flex-start;
+    }
+    
+    .individual-project .service-features {
+      max-height: none !important;
+      display: block !important;
+    }
+    
+    .individual-project-graphics {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding: 20px;
+    }
+    
+    .graphic-content {
+      text-align: center;
+      color: var(--accent);
+      font-family: var(--ff-heading);
+    }
+    
+    .graphic-title {
+      font-size: 24px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .graphic-features {
+      list-style: none;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .graphic-features li {
+      margin-bottom: 8px;
+      position: relative;
+      padding-left: 20px;
+    }
+    
+    .graphic-features li::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* === PORTFOLIO SECTION === */
+    .portfolio{
+      background:var(--bg-black);
+      color:var(--txt-on-black);
+      position: relative;
+    }
+    
+    .portfolio-accordion {
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .portfolio-item {
+      background: var(--bg-light-gray);
+      border: 1px solid var(--muted);
+      margin-bottom: 15px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .bw-theme .portfolio-item {
+      background: var(--bg-light-gray);
+    }
+    
+    .portfolio-item:hover {
+      border-color: var(--accent);
+    }
+    
+    .portfolio-header {
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .portfolio-header:hover {
+      background: var(--bg-gray);
+    }
+    
+    .portfolio-header h3 {
+      margin: 0;
+      color: var(--accent);
+      font-family: var(--ff-heading);
+      font-size: 18px;
+      font-weight: 400;
+    }
+    
+    .portfolio-toggle {
+      color: var(--accent);
+      font-size: 20px;
+      transition: transform 0.3s ease;
+    }
+    
+    .portfolio-item.active .portfolio-toggle {
+      transform: rotate(45deg);
+    }
+    
+    .portfolio-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      border-top: 1px solid transparent;
+    }
+    
+    .portfolio-item.active .portfolio-content {
+      max-height: 2000px;
+      border-top: 1px solid var(--muted);
+    }
+    
+    .portfolio-details {
+      padding: 25px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      animation: contentSlideDown 0.5s ease;
+    }
+    
+    @keyframes contentSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .portfolio-image {
+      background: var(--bg-gray);
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-family: var(--ff-heading);
+      border: 1px solid var(--muted);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .bw-theme .portfolio-image {
+      background: var(--bg-gray);
+    }
+    
+    .portfolio-image::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    .portfolio-item.active .portfolio-image::before {
+      left: 100%;
+    }
+    
+    .portfolio-info h4 {
+      color: var(--accent);
+      font-family: var(--ff-heading);
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    
+    .portfolio-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 15px 0;
+    }
+    
+    .portfolio-links {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .portfolio-link {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: var(--bg-black);
+      font-family: var(--ff-heading);
+      font-size: 14px;
+      border: none;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .portfolio-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-white);
+      transition: left 0.3s ease;
+      z-index: 1;
+    }
+    
+    .portfolio-link:hover::before {
+      left: 0;
+    }
+    
+    .portfolio-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px var(--accent-glow);
+    }
+    
+    .portfolio-link span {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* === ABOUT SECTION === */
+    .about{
+      background:var(--bg-gray);
+      color:var(--txt-on-black);
+      position: relative;
+    }
+    
+    .about .inner{
+      max-width:1000px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:40px;
+      align-items:center;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .tech-stack {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .tech-item {
+      background: var(--bg-light-gray);
+      padding: 15px;
+      border: 1px solid var(--muted);
+      transition: all 0.3s ease;
+    }
+    
+    .bw-theme .tech-item {
+      background: var(--bg-light-gray);
+    }
+    
+    .tech-item:hover {
+      border-color: var(--accent);
+      transform: translateY(-5px);
+    }
+    
+    .tech-item h4 {
+      color: var(--accent);
+      font-family: var(--ff-heading);
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .tech-item ul {
+      list-style: none;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .tech-item li {
+      margin-bottom: 4px;
+      position: relative;
+      padding-left: 15px;
+      line-height: 1.4;
+    }
+    
+    .tech-item li::before {
+      content: '>';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* Выделение важных пунктов */
+    .highlight {
+      color: var(--accent) !important;
+      font-weight: 600;
+    }
+    
+    .process-step {
+      margin-bottom: 15px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    .process-step strong {
+      color: var(--accent);
+      display: block;
+      margin-bottom: 5px;
+      font-family: var(--ff-heading);
+    }
+
+    /* === COMING SOON SECTION === */
+    .coming-soon {
+      background: var(--bg-black);
+      color: var(--txt-on-black);
+      text-align: center;
+      padding: 60px 20px;
+      border-top: 1px solid var(--bg-light-gray);
+      border-bottom: 1px solid var(--bg-light-gray);
+      position: relative;
+    }
+    
+    .coming-soon h2 {
+      color: var(--accent);
+      font-family: var(--ff-heading);
+      margin-bottom: 15px;
+      font-size: 28px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .coming-soon p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* === CONTACT SECTION === */
+    .contact{
+      background:var(--bg-black);
+      color:var(--txt-on-black);
+      text-align:center;
+      position: relative;
+    }
+    
+    .tg-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:14px 24px;
+      background:var(--accent);
+      color:var(--bg-black);
+      font-weight:400;
+      font-family:var(--ff-heading);
+      font-size:16px;
+      border:none;
+      transition:all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    .tg-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-white);
+      transition: left 0.3s ease;
+    }
+    
+    .tg-btn:hover::before {
+      left: 0;
+    }
+    
+    .tg-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px var(--accent-glow);
+    }
+    
+    .tg-btn span {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* === FOOTER - ИСПРАВЛЕННЫЙ === */
+    footer{
+      padding:25px 20px;
+      text-align:center;
+      background:var(--bg-black);
+      color:var(--txt-on-black);
+      border-top:1px solid var(--bg-light-gray);
+      font-family:var(--ff-body);
+      position: relative;
+    }
+    
+    .bw-theme footer {
+      background: var(--bg-black);
+      color: var(--txt-on-black);
+    }
+    
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
+    }
+    
+    .studio-credit {
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* === АДАПТИВНОСТЬ === */
+    @media(max-width: 1100px){
+      .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .service-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media(max-width: 768px){
+      nav{display:none}
+      
+      .services-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      
+      .service-toggle {
+        display: block;
+      }
+      
+      .service-features {
+        display: none;
+      }
+      
+      .svc.active .service-features {
+        display: block;
+      }
+      
+      .service-tech, .service-time {
+        display: none;
+      }
+      
+      .svc.active .service-tech,
+      .svc.active .service-time {
+        display: flex;
+      }
+      
+      .individual-project {
+        grid-template-columns: 1fr;
+        text-align: left;
+      }
+      
+      .individual-project-graphics {
+        display: none;
+      }
+      
+      .tech-stack{grid-template-columns:1fr}
+      .hero .wrap { padding: 0 15px; }
+      
+      .portfolio-details {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .portfolio-image {
+        height: 200px;
+      }
+      
+      .about .inner {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      
+      .individual-project {
+        padding: 20px !important;
+      }
+    }
+    
+    @media(max-width: 480px){
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      header { padding: 12px 15px; }
+      section { padding: 40px 15px; }
+      .svc { padding: 20px; min-height: 250px; }
+      .service-header { flex-direction: column; gap: 10px; }
+      .service-price { align-self: flex-start; }
+      
+      .portfolio-links {
+        flex-direction: column;
+      }
+      
+      .individual-project .service-header {
+        flex-direction: column;
+      }
+    }
+
+    /* === АНИМАЦИИ === */
+    .reveal{
+      opacity:0;
+      transform:translateY(30px);
+      transition:all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .reveal.visible{
+      opacity:1;
+      transform:none;
+    }
+
+    /* === ЗАГОЛОВКИ СЕКЦИЙ === */
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+      font-family: var(--ff-heading);
+      color: var(--accent);
+      font-size: 28px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    
+    .section-title:hover::after {
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ПРЕЛОАДЕР -->
+  <div id="preloader">
+    <div class="preloader-content">
+      <div class="preloader-title"><4:30/></div>
+      <div class="loading-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- HEADER -->
+  <header>
+    <div class="logo"><4:30/></div>
+    <nav>
+      <a href="#services" class="nav-btn">УСЛУГИ</a>
+      <a href="#portfolio" class="nav-btn">РАБОТЫ</a>
+      <a href="#about" class="nav-btn">ТЕХНОЛОГИИ</a>
+      <a href="#contact" class="nav-btn">КОНТАКТЫ</a>
+      <button class="theme-toggle" id="themeToggle">Ч/Б</button>
+    </nav>
+  </header>
+
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+      <canvas id="matrixCanvas"></canvas>
+      
+      <div class="wrap">
+        <h1><span id="type-target">СТУДИЯ РАЗРАБОТКИ TELEGRAM РЕШЕНИЙ</span><span id="cursor">▍</span></h1>
+        <p class="lead">Создаём функциональные решения для Telegram: боты, Mini Apps, парсинг и автоматизация. Чистый код, точные сроки, результат.</p>
+        <a class="cta" href="#services">
+          <span>УЗНАТЬ СТОИМОСТЬ</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section class="services glass-section" id="services">
+      <h2 class="section-title">НАШИ УСЛУГИ</h2>
+      <div class="services-grid">
+        <div class="svc reveal featured">
+          <button class="service-toggle">+</button>
+          <div class="service-header">
+            <h3>TELEGRAM БОТ</h3>
+            <div class="service-price">от 15 000 ₽</div>
+          </div>
+          <p>Полнофункциональный бот для автоматизации и взаимодействия с пользователями</p>
+          <div class="service-tech">
+            <span class="tech-tag">Python</span>
+            <span class="tech-tag">aiogram</span>
+            <span class="tech-tag">PostgreSQL</span>
+          </div>
+          <ul class="service-features">
+            <li>Команды и инлайн-режим</li>
+            <li>Работа с медиа и файлами</li>
+            <li>Интеграция с внешними API</li>
+            <li>Панель администратора</li>
+            <li>Webhook или Long Polling</li>
+          </ul>
+          <div class="service-time">Срок: 2-3 недели</div>
+        </div>
+
+        <div class="svc reveal">
+          <button class="service-toggle">+</button>
+          <div class="service-header">
+            <h3>MINI APP</h3>
+            <div class="service-price">от 25 000 ₽</div>
+          </div>
+          <p>Веб-приложение внутри Telegram с богатым интерфейсом</p>
+          <div class="service-tech">
+            <span class="tech-tag">JavaScript</span>
+            <span class="tech-tag">Telegram WebApp</span>
+            <span class="tech-tag">HTML/CSS</span>
+          </div>
+          <ul class="service-features">
+            <li>Адаптивный интерфейс</li>
+            <li>Интеграция с Telegram API</li>
+            <li>Работа с данными пользователя</li>
+            <li>Кросс-платформенность</li>
+            <li>Нативный UX в Telegram</li>
+          </ul>
+          <div class="service-time">Срок: 3-4 недели</div>
+        </div>
+
+        <div class="svc reveal">
+          <button class="service-toggle">+</button>
+          <div class="service-header">
+            <h3>ПАРСИНГ + БОТ</h3>
+            <div class="service-price">от 20 000 ₽</div>
+          </div>
+          <p>Автоматический сбор данных и бот для управления</p>
+          <div class="service-tech">
+            <span class="tech-tag">Python</span>
+            <span class="tech-tag">BeautifulSoup</span>
+            <span class="tech-tag">Selenium</span>
+          </div>
+          <ul class="service-features">
+            <li>Парсинг сайтов и каналов</li>
+            <li>Фильтрация и обработка данных</li>
+            <li>Автопостинг в Telegram</li>
+            <li>Панель управления</li>
+            <li>Уведомления о новых данных</li>
+          </ul>
+          <div class="service-time">Срок: 2-4 недели</div>
+        </div>
+
+        <div class="svc reveal">
+          <button class="service-toggle">+</button>
+          <div class="service-header">
+            <h3>CRM + ТЕЛЕГРАМ ИНТЕГРАЦИЯ</h3>
+            <div class="service-price">от 30 000 ₽</div>
+          </div>
+          <p>Интеграция CRM системы с Telegram для управления заказами</p>
+          <div class="service-tech">
+            <span class="tech-tag">Python</span>
+            <span class="tech-tag">Django</span>
+            <span class="tech-tag">REST API</span>
+          </div>
+          <ul class="service-features">
+            <li>Управление заказами через бота</li>
+            <li>Уведомления менеджеров</li>
+            <li>Статусы и история заказов</li>
+            <li>Отчеты и аналитика</li>
+            <li>Мультипользовательский доступ</li>
+          </ul>
+          <div class="service-time">Срок: 4-5 недели</div>
+        </div>
+
+        <div class="svc reveal">
+          <button class="service-toggle">+</button>
+          <div class="service-header">
+            <h3>ИГРОВОЙ БОТ</h3>
+            <div class="service-price">от 18 000 ₽</div>
+          </div>
+          <p>Интерактивный бот с игровыми механиками и экономикой</p>
+          <div class="service-tech">
+            <span class="tech-tag">Python</span>
+            <span class="tech-tag">aiogram</span>
+            <span class="tech-tag">Redis</span>
+          </div>
+          <ul class="service-features">
+            <li>Игровая экономика</li>
+            <li>Система достижений</li>
+            <li>Мультиплеерные игры</li>
+            <li>Система лидеров</li>
+            <li>Ежедневные бонусы</li>
+          </ul>
+          <div class="service-time">Срок: 3-4 недели</div>
+        </div>
+
+        <div class="svc reveal">
+          <button class="service-toggle">+</button>
+          <div class="service-header">
+            <h3>КОРПОРАТИВНЫЙ БОТ</h3>
+            <div class="service-price">от 35 000 ₽</div>
+          </div>
+          <p>Бот для внутренних коммуникаций и автоматизации бизнес-процессов</p>
+          <div class="service-tech">
+            <span class="tech-tag">Node.js</span>
+            <span class="tech-tag">MongoDB</span>
+            <span class="tech-tag">Docker</span>
+          </div>
+          <ul class="service-features">
+            <li>Учет рабочего времени</li>
+            <li>Система уведомлений</li>
+            <li>Интеграция с корпоративными системами</li>
+            <li>Отчеты и дашборды</li>
+            <li>Ролевая модель доступа</li>
+          </ul>
+          <div class="service-time">Срок: 5-6 недель</div>
+        </div>
+
+        <!-- Индивидуальный проект - ИСПРАВЛЕННЫЙ -->
+        <div class="svc reveal individual-project">
+          <div class="individual-project-content">
+            <div class="service-header">
+              <h3>ИНДИВИДУАЛЬНЫЙ ПРОЕКТ</h3>
+              <div class="service-price">от 30 000 ₽</div>
+            </div>
+            <p>Создаем уникальные решения под ваши конкретные задачи. Стоимость и сроки уточняются после консультации.</p>
+            <div class="service-tech">
+              <span class="tech-tag">Любые технологии</span>
+              <span class="tech-tag">Индивидуальный подход</span>
+              <span class="tech-tag">Полный цикл разработки</span>
+            </div>
+            <ul class="service-features">
+              <li>Анализ бизнес-процессов</li>
+              <li>Прототипирование и дизайн</li>
+              <li>Разработка и тестирование</li>
+              <li>Запуск и техническая поддержка</li>
+            </ul>
+            <div class="service-time">Срок: обсуждается индивидуально</div>
+          </div>
+          <div class="individual-project-graphics">
+            <div class="graphic-content">
+              <div class="graphic-title">ИНДИВИДУАЛЬНЫЙ ПОДХОД</div>
+              <ul class="graphic-features">
+                <li>Анализ требований</li>
+                <li>Прототипирование</li>
+                <li>Разработка</li>
+                <li>Тестирование</li>
+                <li>Поддержка</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTFOLIO SECTION -->
+    <section class="portfolio glass-section" id="portfolio">
+      <h2 class="section-title">НАШИ РАБОТЫ</h2>
+      <div class="portfolio-accordion">
+        <div class="portfolio-item reveal">
+          <div class="portfolio-header">
+            <h3>ПАРСЕР TELEGRAM КАНАЛОВ + АДМИН-ПАНЕЛЬ</h3>
+            <span class="portfolio-toggle">+</span>
+          </div>
+          <div class="portfolio-content">
+            <div class="portfolio-details">
+              <div class="portfolio-image">
+                ПРЕВЬЮ ПРОЕКТА #1
+              </div>
+              <div class="portfolio-info">
+                <h4>ОПИСАНИЕ ПРОЕКТА</h4>
+                <p>Система автоматического сбора контента из Telegram каналов с фильтрацией и автопостингом. Включает админ-панель для управления источниками и настройки фильтров.</p>
+                
+                <h4>ТЕХНОЛОГИИ</h4>
+                <div class="portfolio-tech">
+                  <span class="tech-tag">Python</span>
+                  <span class="tech-tag">aiogram</span>
+                  <span class="tech-tag">BeautifulSoup</span>
+                  <span class="tech-tag">PostgreSQL</span>
+                  <span class="tech-tag">FastAPI</span>
+                </div>
+                
+                <h4>ОСОБЕННОСТИ</h4>
+                <ul class="service-features">
+                  <li>Парсинг 100+ каналов одновременно</li>
+                  <li>Умная фильтрация по ключевым словам</li>
+                  <li>Автопостинг по расписанию</li>
+                  <li>Панель управления с статистикой</li>
+                  <li>Уведомления о новых данных</li>
+                </ul>
+                
+                <div class="portfolio-links">
+                  <a href="#" class="portfolio-link"><span>ПРОСМОТРЕТЬ В TELEGRAM</span></a>
+                  <a href="#" class="portfolio-link"><span>АДМИН-ПАНЕЛЬ (DEMO)</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="portfolio-item reveal">
+          <div class="portfolio-header">
+            <h3>MINI APP - ФИНАНСОВЫЙ ТРЕКЕР</h3>
+            <span class="portfolio-toggle">+</span>
+          </div>
+          <div class="portfolio-content">
+            <div class="portfolio-details">
+              <div class="portfolio-image">
+                ПРЕВЬЮ ПРОЕКТА #2
+              </div>
+              <div class="portfolio-info">
+                <h4>ОПИСАНИЕ ПРОЕКТА</h4>
+                <p>Приложение для учета доходов и расходов прямо в Telegram. С визуализацией статистики, категориями и экспортом данных.</p>
+                
+                <h4>ТЕХНОЛОГИИ</h4>
+                <div class="portfolio-tech">
+                  <span class="tech-tag">JavaScript</span>
+                  <span class="tech-tag">Telegram WebApp</span>
+                  <span class="tech-tag">Chart.js</span>
+                  <span class="tech-tag">Node.js</span>
+                  <span class="tech-tag">MongoDB</span>
+                </div>
+                
+                <h4>ОСОБЕННОСТИ</h4>
+                <ul class="service-features">
+                  <li>Учет доходов и расходов</li>
+                  <li>Визуализация статистики (графики)</li>
+                  <li>Категории и теги</li>
+                  <li>Экспорт данных в CSV</li>
+                  <li>Напоминания о регулярных платежах</li>
+                </ul>
+                
+                <div class="portfolio-links">
+                  <a href="#" class="portfolio-link"><span>ОТКРЫТЬ В TELEGRAM</span></a>
+                  <a href="#" class="portfolio-link"><span>ИСХОДНЫЙ КОД (GITHUB)</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="portfolio-item reveal">
+          <div class="portfolio-header">
+            <h3>БОТ ДЛЯ АВТОМАТИЗАЦИИ ЗАКАЗОВ</h3>
+            <span class="portfolio-toggle">+</span>
+          </div>
+          <div class="portfolio-content">
+            <div class="portfolio-details">
+              <div class="portfolio-image">
+                ПРЕВЬЮ ПРОЕКТА #3
+              </div>
+              <div class="portfolio-info">
+                <h4>ОПИСАНИЕ ПРОЕКТА</h4>
+                <p>Telegram бот для приема и обработки заказов с интеграцией с CRM системой. Автоматические уведомления, статусы заказов и отчетность.</p>
+                
+                <h4>ТЕХНОЛОГИИ</h4>
+                <div class="portfolio-tech">
+                  <span class="tech-tag">Python</span>
+                  <span class="tech-tag">aiogram</span>
+                  <span class="tech-tag">Django</span>
+                  <span class="tech-tag">PostgreSQL</span>
+                  <span class="tech-tag">Redis</span>
+                </div>
+                
+                <h4>ОСОБЕННОСТИ</h4>
+                <ul class="service-features">
+                  <li>Прием заказов через бота</li>
+                  <li>Интеграция с CRM системой</li>
+                  <li>Уведомления менеджеров</li>
+                  <li>Отчеты по продажам</li>
+                  <li>Панель администратора</li>
+                </ul>
+                
+                <div class="portfolio-links">
+                  <a href="#" class="portfolio-link"><span>ПРОТЕСТИРОВАТЬ БОТА</span></a>
+                  <a href="#" class="portfolio-link"><span>ПОСМОТРЕТЬ ОТЗЫВЫ</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="about glass-section" id="about">
+      <h2 class="section-title">ТЕХНОЛОГИИ И СТЕК</h2>
+      <div class="inner">
+        <div>
+          <h3 style="color:var(--accent); font-family:var(--ff-heading); margin-bottom:15px;">ОПЫТ РАБОТЫ</h3>
+          <p style="color:var(--muted); line-height:1.6; margin-bottom:20px;">
+            Более 3 лет специализируемся на разработке Telegram решений. Создаем боты любой сложности — от простых автоматизаций до сложных систем с интеграциями внешних API и баз данных.
+          </p>
+          <div class="tech-stack">
+            <div class="tech-item reveal">
+              <h4>BACKEND</h4>
+              <ul>
+                <li>Python + aiogram</li>
+                <li>Node.js + Telegraf</li>
+                <li>FastAPI / Django</li>
+                <li>PostgreSQL / Redis</li>
+              </ul>
+            </div>
+            <div class="tech-item reveal">
+              <h4>FRONTEND</h4>
+              <ul>
+                <li>JavaScript ES6+</li>
+                <li>Telegram WebApps</li>
+                <li>HTML5 / CSS3</li>
+                <li>React / Vue.js</li>
+              </ul>
+            </div>
+            <div class="tech-item reveal">
+              <h4>ИНФРАСТРУКТУРА</h4>
+              <ul>
+                <li>Docker / Docker-compose</li>
+                <li>Nginx</li>
+                <li>Linux сервера</li>
+                <li>CI/CD настройка</li>
+              </ul>
+            </div>
+            <div class="tech-item reveal">
+              <h4>ДОПОЛНИТЕЛЬНО</h4>
+              <ul>
+                <li>Парсинг данных</li>
+                <li>API интеграции</li>
+                <li>Webhook настройка</li>
+                <li>Тестирование / Debug</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 style="color:var(--accent); font-family:var(--ff-heading); margin-bottom:15px;">ПРОЦЕСС РАБОТЫ</h3>
+          <div style="color:var(--muted); line-height:1.6;">
+            <div class="process-step">
+              <strong>1. Консультация</strong> - Обсуждаем задачу, технические требования и сроки
+            </div>
+            <div class="process-step">
+              <strong>2. Прототип</strong> - Создаем прототип и утверждаем функционал
+            </div>
+            <div class="process-step">
+              <strong>3. Разработка</strong> - Пишем код, тестируем, исправляем ошибки
+            </div>
+            <div class="process-step">
+              <strong>4. Запуск</strong> - Разворачиваем на сервере, настраиваем
+            </div>
+            <div class="process-step">
+              <strong>5. Поддержка</strong> - Гарантийная поддержка после запуска
+            </div>
+          </div>
+          
+          <h3 style="color:var(--accent); font-family:var(--ff-heading); margin:25px 0 15px;">ГАРАНТИИ</h3>
+          <div style="color:var(--muted); line-height:1.6;">
+            <p class="highlight">✓ Чистый и документированный код</p>
+            <p class="highlight">✓ Соблюдение сроков разработки</p>
+            <p class="highlight">✓ Техническая поддержка 1 месяц</p>
+            <p class="highlight">✓ Конфиденциальность данных</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMING SOON SECTION -->
+    <section class="coming-soon glass-section">
+      <h2>РАЗРАБОТКА САЙТОВ</h2>
+      <p>Скоро запускаем новое направление — создание современных адаптивных сайтов. Следите за обновлениями!</p>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section class="contact glass-section" id="contact">
+      <h2 class="section-title">НАЧНЁМ ПРОЕКТ?</h2>
+      <p style="color:var(--muted);margin-bottom:25px;font-size:16px; max-width:600px; margin-left:auto; margin-right:auto;">
+        Обсудим ваш проект, оценим сроки и стоимость. Отвечаем в Telegram в течение 1-2 часов.
+      </p>
+      <a class="tg-btn" href="https://t.me/Studio_430_Manager" target="_blank">
+        <span>НАПИСАТЬ В TELEGRAM</span>
+      </a>
+      
+      <div style="margin-top:40px; color:var(--muted); font-size:14px;">
+        <p>Работаем по предоплате 30%. Полная оплата после сдачи проекта.</p>
+        <p style="margin-top:10px;">Предоставляем тестовый период для сложных проектов.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>© <span id="year"></span> <4:30/> - РАЗРАБОТКА TELEGRAM РЕШЕНИЙ</div>
+    <div class="studio-credit">Сделано в студии разработки <4:30/></div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // === ОСНОВНОЙ JavaScript ===
+    
+    // Прелоадер
+    window.addEventListener('load',()=>{
+      const pre = document.getElementById('preloader');
+      
+      setTimeout(() => {
+        document.querySelectorAll('.dot').forEach(dot => {
+          dot.style.opacity = '1';
+        });
+        
+        setTimeout(() => {
+          pre.style.opacity = '0';
+          setTimeout(() => {
+            pre.style.display = 'none';
+          }, 800);
+        }, 2000);
+      }, 500);
+    });
+
+    // Год в футере
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Typewriter эффект
+    (function(){
+      const el = document.getElementById('type-target');
+      const cursor = document.getElementById('cursor');
+      const txt = el.textContent;
+      el.textContent = '';
+      let i = 0;
+      const speed = 40;
+      
+      function step(){
+        if(i <= txt.length){
+          el.textContent = txt.slice(0,i);
+          i++;
+          setTimeout(step, speed);
+        } else {
+          cursor.style.animation = 'blink 1s infinite';
+        }
+      }
+      setTimeout(step, 1000);
+    })();
+
+    // Matrix Rain Effect для главной страницы
+    const canvas = document.getElementById('matrixCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const chars = '01010101010101010101';
+      const charArray = chars.split('');
+
+      const fontSize = 14;
+      const columns = canvas.width / fontSize;
+
+      const drops = [];
+      for (let i = 0; i < columns; i++) {
+        drops[i] = Math.random() * -100;
+      }
+
+      function drawMatrix() {
+        const isBwTheme = document.body.classList.contains('bw-theme');
+        const textColor = isBwTheme ? '#000000' : '#00FF00';
+        
+        ctx.fillStyle = isBwTheme ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = textColor;
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = charArray[Math.floor(Math.random() * charArray.length)];
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+      }
+
+      setInterval(drawMatrix, 35);
+    }
+
+    // Анимации при скролле
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(e => {
+        if(e.isIntersecting){
+          e.target.classList.add('visible');
+          obs.unobserve(e.target);
+        }
+      });
+    },{threshold:0.1});
+
+    document.querySelectorAll('.reveal').forEach(n => obs.observe(n));
+
+    // Аккордеон для услуг на мобильных
+    document.querySelectorAll('.service-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const service = this.closest('.svc');
+        service.classList.toggle('active');
+        this.textContent = service.classList.contains('active') ? '−' : '+';
+      });
+    });
+
+    // Аккордеон для портфолио
+    document.querySelectorAll('.portfolio-header').forEach(header => {
+      header.addEventListener('click', function() {
+        const item = this.closest('.portfolio-item');
+        const isActive = item.classList.contains('active');
+        
+        // Закрываем все открытые элементы
+        document.querySelectorAll('.portfolio-item').forEach(i => {
+          i.classList.remove('active');
+        });
+        
+        // Открываем текущий, если он был закрыт
+        if (!isActive) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // Плавная прокрутка для навигации
+    document.querySelectorAll('nav a').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 70,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+
+    // Закрытие аккордеона услуг при клике вне элемента
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.svc')) {
+        document.querySelectorAll('.svc').forEach(service => {
+          service.classList.remove('active');
+          const toggle = service.querySelector('.service-toggle');
+          if (toggle) toggle.textContent = '+';
+        });
+      }
+    });
+
+    // Переключение темы Ч/Б
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', function() {
+      document.body.classList.toggle('bw-theme');
+      this.textContent = document.body.classList.contains('bw-theme') ? 'ЦВЕТ' : 'Ч/Б';
+    });
+
+    // Адаптивность Matrix при ресайзе
+    window.addEventListener('resize', function() {
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    });
+  </script>
+</body>
+</html>
